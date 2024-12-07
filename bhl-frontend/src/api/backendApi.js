@@ -10,7 +10,7 @@ export const backendApi = (url) => {
     });
 
     client.interceptors.response.use((response) => {
-        return response;
+        return response.data;
     }, async (error) => {
         console.log('An error occurred while calling backend', error);
         if (error.response) {

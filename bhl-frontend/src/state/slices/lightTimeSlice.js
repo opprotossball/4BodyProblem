@@ -28,7 +28,7 @@ const lightTimeSlice = createSlice({
             })
             .addCase(fetchLightTime.fulfilled, (state, action) => {
                 state.loading = false;
-                state.lightTime = action.payload;
+                state.lightTime = action.payload.light_minutes;
             })
             .addCase(fetchLightTime.rejected, (state, action) => {
                 state.loading = false;
