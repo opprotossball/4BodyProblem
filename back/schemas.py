@@ -15,3 +15,9 @@ class Config:
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class InitiateWebSocketResponse(BaseModel):
+    websocket_url: str
+
+class LightTimeResponse(BaseModel):
+    light_minutes: int
