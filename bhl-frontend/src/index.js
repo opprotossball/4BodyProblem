@@ -6,12 +6,17 @@ import {Provider} from "react-redux";
 import {store} from "./state/store";
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import {HomePage} from "./pages/HomePage";
+import Simulation from "./pages/Simulation";
 
 const router = createBrowserRouter([
     {
         path: "/",
         element: <HomePage/>
     },
+    {
+        path: "/simulation",
+        element: <Simulation/>
+    }
 ]);
 
 

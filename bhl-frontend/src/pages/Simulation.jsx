@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./style.css";
+import "../style.css";
 
 function Simulation() {
     const [delay, setDelay] = useState(6); // Opóźnienie w sekundach
