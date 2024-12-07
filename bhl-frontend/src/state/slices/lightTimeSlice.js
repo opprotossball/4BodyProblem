@@ -7,10 +7,9 @@ export const fetchLightTime = createAsyncThunk(
     'lightTime/fetchLightTime',
     async () => {
         const response = await lightTimeApi.getLightTime();
-        return response.data;
+        return response;
     }
 );
-
 
 const initialState = {
     lightTime: 0,
@@ -21,11 +20,7 @@ const initialState = {
 const lightTimeSlice = createSlice({
     name: SLICE_NAME,
     initialState,
-    reducers: {
-        close: state => {
-            state.lightTime = initialState.lightTime;
-        }
-    },
+    reducers: {},
     extraReducers: builder => {
         builder
             .addCase(fetchLightTime.pending, state => {
@@ -37,7 +32,7 @@ const lightTimeSlice = createSlice({
             })
             .addCase(fetchLightTime.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.error.message;
+                state.error = action;
                 state.lightTime = initialState.lightTime;
             })
     }
