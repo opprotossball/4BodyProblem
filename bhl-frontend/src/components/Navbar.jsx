@@ -1,7 +1,7 @@
-import {AppBar, Button, Toolbar} from "@mui/material";
+import {AppBar, Button, FormControl, InputLabel, MenuItem, Select, Toolbar} from "@mui/material";
 import {NavLink} from "react-router";
 import {useDispatch, useSelector} from "react-redux";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {fetchLightTime} from "../state/slices/lightTimeSlice";
 import {NavbarButton} from "./navbar/NavbarButton";
 
@@ -10,11 +10,16 @@ export const Navbar = () => {
     const loading = useSelector(state => state.lightTime.loading);
     const lightTime = useSelector(state => state.lightTime.lightTime);
 
+    const [selectedValue, setSelectedValue] = useState('Selected value');
+
     const dispatch = useDispatch();
 
     useEffect(() => {
+        setSelectedValue('MARS');
         dispatch(fetchLightTime());
     }, []);
+
+    console.log(lightTime)
 
     return (
         <div className="absolute">
@@ -27,10 +32,6 @@ export const Navbar = () => {
                             <div>
                                 <NavbarButton to="/" name="Home"/>
                                 <NavbarButton to="/calendar" name="Calendar"/>
-                                <Button sx={{
-                                    fontWeight: 'bold',
-                                    fontSize: '1.25rem'
-                                }} component={NavLink} to="/chat" color="inherit">Chat</Button>
                             </div>
                         </div>
                     </div>

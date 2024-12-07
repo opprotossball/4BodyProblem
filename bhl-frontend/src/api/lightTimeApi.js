@@ -1,6 +1,6 @@
 import {backendApi} from "./backendApi";
 
-const lightTimeClient = backendApi('')
+const lightTimeClient = backendApi('/astronomy')
 
 export const lightTimeApi = {
     getLightTime: () => {

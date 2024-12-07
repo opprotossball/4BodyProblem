@@ -13,9 +13,10 @@ export const HomePage = () => {
                 <div className="flex w-1/2 justify-center">
                     <Button variant='contained' sx={{
                         backgroundColor: '#1F2937',
-                        fontSize: '2rem',
+                        fontSize: '2.5rem',
                         fontWeight: 'bold',
-                        padding: '24px 64px',
+                        padding: '18px 64px',
+                        borderRadius: 3,
                         '&:hover': {
                             backgroundColor: '#374151',
                         },
