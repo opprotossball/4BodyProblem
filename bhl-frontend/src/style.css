@@ -1,0 +1,143 @@
+.simulation-container {
+    text-align: center;
+    color: white;
+    background-color: #0a0a23;
+    padding: 20px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+  }
+  
+  .settings {
+    margin-bottom: 20px;
+  }
+
+.delay {
+  position: relative;
+  display: inline-block;
+}
+
+.delay input {
+  /* Ustawienie koloru tła tak, aby był identyczny z kolorem tła strony */
+  background-color: transparent;
+  /* Dodanie futurytycznej ramki, która wygląda jakby świeciła */
+  border: none;
+  border-bottom: 2px solid #00FFFF; /* Kolor ramki, np. jasnoniebieski */
+  outline: none; /* Usuwa domyślny outline podczas focus */
+  padding: 5px 0; /* Dodatkowe miejsce na ramkę */
+  color: #FFFFFF; /* Kolor tekstu w polu */
+}
+
+.delay input:focus {
+  border-color: #00FFFF; /* Świecący efekt przy focus */
+  box-shadow: 0 0 5px #00FFFF; /* Daje efekt świecenia wokół pola */
+}
+
+.delay label {
+  position: absolute;
+  top: -20px; /* Przesuwa tekst nad pole */
+  left: 0;
+  color: #FFFFFF; /* Kolor tekstu */
+  pointer-events: none;
+  transition: 0.2s ease all;
+}
+
+.delay input:focus + label, 
+.delay input:not(:placeholder-shown) + label {
+  top: -30px; /* Przesuwa tekst jeszcze wyżej, gdy pole jest wypełnione lub focus */
+  font-size: 14px; /* Możesz zmniejszyć rozmiar czcionki, jeśli chcesz */
+  color: #00FFFF; /* Zmiana koloru tekstu na focus */
+}
+  
+  .message-input {
+    margin-bottom: 20px;
+  }
+  
+  .message-input input {
+    padding: 10px;
+    margin-right: 10px;
+    border: none;
+    border-radius: 5px;
+    width: 200px;
+  }
+  
+  .message-input button {
+    padding: 10px;
+    border: none;
+    background-color: #3b82f6;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .simulation-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 80%;
+    position: relative;
+  }
+  
+  .message-box {
+    width: 25%;
+    height: 300px;
+    background-color: #1e293b;
+    border-radius: 10px;
+    padding: 10px;
+    overflow-y: auto;
+  }
+  
+  .earth-box {
+    text-align: left;
+  }
+  
+  .mars-box {
+    text-align: right;
+  }
+  
+  .message {
+    background-color: #3b82f6;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+  
+  .mars-box .message {
+    background-color: #ff6b6b;
+  }
+  
+  .space {
+    width: 100%;
+    height: 6em;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .flying-message {
+    position: absolute;
+    left: 0;
+    top: 10%;
+    transform: translateY(-50%);
+    background-color: yellow;
+    color: black;
+    padding: 5px;
+    border-radius: 50%;
+    animation-timing-function: linear;
+  }
+  
+  @keyframes flyToMars {
+    0% {
+      transform: translate(0, 0);
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate(100vw, 0);
+      opacity: 0;
+    }
+  }
