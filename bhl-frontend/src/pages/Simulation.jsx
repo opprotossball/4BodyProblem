@@ -11,6 +11,7 @@ function Simulation() {
     const [selectedResponses, setSelectedResponses] = useState([]); // Wybrane odpowiedzi
     const [signature, setSignature] = useState(""); // Podpis użytkownika
     const [messagesToAnimate, setMessagesToAnimate] = useState([]);
+    const [showResponses, setShowResponses] = useState(true);
 
 
     const calculateDelayInMilliseconds = () => {
@@ -63,10 +64,15 @@ function Simulation() {
         }
     }
 
-
-    const handleClose = () => {
-        setResponses([]);
+    const handleOpen = () => {
+        setShowResponses(true);
     };
+    const handleClose = () => {
+        setShowResponses(false);
+    };
+    // const handleClose = () => {
+    //     setResponses([]);
+    // };
 
     const handleAnimationEnd = (key) => {
         setMessagesToAnimate(prev => prev.filter(msg => msg.key !== key));
@@ -128,54 +134,72 @@ function Simulation() {
             </div>
 
             {/* Propozycje odpowiedzi */}
-            {responses.length > 0 && (
-                <div className="bg-gray-800 p-4 rounded-lg shadow-lg mb-6 w-full max-w-2xl">
-                    <h3 className="text-lg font-semibold mb-4">Propozycje odpowiedzi:</h3>
-                    {responses.map((response, index) => (
-                        <div
-                            key={index}
-                            onClick={() => handleSelectResponse(response)}
-                            className={`p-2 mb-2 cursor-pointer rounded-lg ${selectedResponses.includes(response)
+            <div>
+                {!showResponses && responses.length > 0 && (
+                    <div
+                        onClick={handleOpen}
+                        className="cursor-pointer text-gray-500 bg-gray-800 p-2 rounded-full"
+                        title="Open Responses"
+                    >
+                        {/* Możesz użyć ikonki z biblioteki jak React Icons lub ikonki SVG */}
+                        <svg
+                            className="w-6 h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </div>
+                )}
+                {showResponses && responses.length > 0 && (
+                    <div className="bg-gray-800 w-lvw p-4 rounded-lg shadow-lg mb-6 w-full max-w-2xl">
+                        <h3 className="text-lg font-semibold mb-4">Propozycje odpowiedzi:</h3>
+                        {responses.map((response, index) => (
+                            <div
+                                key={index}
+                                onClick={() => handleSelectResponse(response)}
+                                className={`p-2 mb-2 cursor-pointer rounded-lg ${selectedResponses.includes(response)
                                     ? "bg-blue-500 text-white"
                                     : "bg-gray-700 text-gray-300"
-                                }`}
-                        >
-                            {response}
+                                    }`}
+                            >
+                                {response}
+                            </div>
+                        ))}
+                        <div className="mt-4">
+                            <input
+                                type="text"
+                                value={signature}
+                                onChange={(e) => setSignature(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleSave()}
+                                placeholder="Write your own answer"
+                                className="w-full p-2 bg-gray-700 text-gray-300 rounded-lg"
+                            />
                         </div>
-                    ))}
-                    <div className="mt-4">
-                        <input
-                            type="text"
-                            value={signature}
-                            onChange={(e) => setSignature(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && handleSave()}
-                            placeholder="Write your own answer"
-                            className="w-full p-2 bg-gray-700 text-gray-300 rounded-lg"
-                        />
+
+                        <div className="flex justify-around content-center mt-4">
+                            <button
+                                onClick={handleSave}
+                                className="mt-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+                            >
+                                Sent
+                            </button>
+
+                            <button
+                                onClick={handleClose}
+                                className="mt-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+                            >
+                                Close
+                            </button>
+                        </div>
                     </div>
-
-                    <div className="mt-4">
-                        <button
-                            onClick={handleSave}
-                            className="mt-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
-                        >
-                            Save
-                        </button>
-
-                        <button
-                            onClick={handleClose}
-                            className="mt-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
-                        >
-                            Close
-                        </button>
-                    </div>
-
-
-                </div>
-            )}
+                )}
+            </div>
 
             {/* Obszar symulacji */}
-            <div className=" flex flex-wrap	items-center ">
+            <div className=" flex flex-col items-center ">
                 {/* Okno Ziemi */}
                 <div className=" flex w-full w-180 bg-gray-800 justify-center space-x-6 rounded-lg shadow-lg">
 

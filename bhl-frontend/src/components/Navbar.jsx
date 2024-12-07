@@ -19,8 +19,6 @@ export const Navbar = () => {
         dispatch(fetchLightTime());
     }, []);
 
-    console.log(lightTime)
-
     return (
         <div className="absolute">
             <AppBar sx={{
