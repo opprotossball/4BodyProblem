@@ -1,7 +1,14 @@
 import {Navbar} from "../components/Navbar";
-import {Button} from "@mui/material";
+import {Button, FormControl, InputLabel, MenuItem, Select} from "@mui/material";
+import {useState} from "react";
 
 export const HomePage = () => {
+
+    const [selectedValue, setSelectedValue] = useState('EARTH');
+
+    const handleChange = (event) => {
+        setSelectedValue(event.target.value);
+    };
 
     return (
         <div className='flex flex-col items-center'>
@@ -22,6 +29,25 @@ export const HomePage = () => {
                         },
                     }}>Chat!</Button>
                 </div>
+                <FormControl fullWidth style={{marginTop: '16px',
+                justifyContent: 'center'}}>
+                    <InputLabel id="dropdown-label" sx={{ color: '#fff', fontWeight:'bold'}}>You are on:</InputLabel>
+                    <Select
+                        className="font-semibold w-full bg-gray-800 rounded-bl focus:outline-none focus:ring"
+                        sx={{
+                            color: '#fff',
+                            border: 1,
+                            borderColor: '#444',
+                            fontWeight: 'bold'
+                        }}
+                        labelId="dropdown-label"
+                        value={selectedValue}
+                        onChange={handleChange}
+                    >
+                        <MenuItem sx={{fontWeight: 'bold'}} value="EARTH">EARTH</MenuItem>
+                        <MenuItem sx={{fontWeight: 'bold'}} value="MARS">MARS</MenuItem>
+                    </Select>
+                </FormControl>
             </div>
         </div>
     );
