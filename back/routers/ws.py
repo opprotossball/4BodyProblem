@@ -7,7 +7,7 @@ from time import sleep
 import websockets
 import json
 import asyncio 
-from llm import predict_responses
+from llm import predict_responses, choose_prediction
 import json
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from schemas import InitiateWebSocketResponse
@@ -17,6 +17,7 @@ from dotenv import load_dotenv
 from time import sleep
 import websockets
 import json
+from predictions import add_prediction, clear_predictions, get_predictions
 
 load_dotenv()
 planet = os.getenv("PLANET")
@@ -44,8 +45,15 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
     try:
         while True:
             data = await websocket.receive_text()
-            print(f"received local: {data}")
-            await handle_local_message(json.loads(data))
+            #if "is_predicted" in data 
+            print(data, flush=True)
+            print(type(data), flush=True)
+            data = json.loads(data)
+            if not data["is_predicted"]:
+                await handle_local_message(data)
+            else:
+                await send(data)
+
     except WebSocketDisconnect:
         del frontend_ws_connections[user_id]
         print(f"WebSocket disconnected for user {user_id}")
@@ -61,17 +69,23 @@ async def send_to_all(message: str):
             print(f"Failed to send message to user {user_id}: {e}")
 
 async def handle_local_message(message):
-    print("handling message")
-    await send(message)
-    predictions = predict_responses(message["message"], 3)
-    print(predictions)
-    for pred in predictions:
-        response = {
-            "message": pred,
-            "is_predicted": True
+    cached_prediction = choose_prediction(message, get_predictions())
+    if cached_prediction is not None:
+        res = {
+            "message": cached_prediction["message"],
+            "is_predicted": False
         }
-        await send_to_all(json.dumps(response))
-
+        send_to_all(json.dumps(res))
+    else:
+        await send(message)
+        predictions = predict_responses(message["message"], 3)
+        for pred in predictions:
+            response = {
+                "message": pred,
+                "is_predicted": True
+            }
+            await send_to_all(json.dumps(response))
+    clear_predictions()
 
 @router.websocket("/inter-ws")
 async def interplanetary_websocket(websocket: WebSocket):
@@ -80,7 +94,10 @@ async def interplanetary_websocket(websocket: WebSocket):
         while True:
             data = await websocket.receive_text()
             print(f"interplanetary received: {data}!!", flush=True)
-            await send_to_all(data)
+            if not data["is_predicted"]:
+                await send_to_all(data)
+            else:
+                add_prediction(data)
     except WebSocketDisconnect:
         print(f"WebSocket disconnected")
 
