@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from routers import auth, websockets, astronomy
 from fastapi.routing import APIRouter
-
+from llm import test
 from fastapi.middleware.cors import CORSMiddleware
+import time 
+import asyncio 
 
 app = FastAPI()
 
@@ -13,6 +15,11 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all HTTP headers
 )
+
+@app.on_event("startup")
+async def interplanetary():
+    await asyncio.sleep(5)
+    await websockets.interplanetary_connect()
 
 router = APIRouter(prefix="/api/v1")
 router.include_router(auth.router, prefix="/auth", tags=["auth"])
