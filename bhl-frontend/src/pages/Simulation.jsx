@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import "../style.css";
-import useWebSocket, {ReadyState} from "react-use-websocket";
+import useWebSocket from "react-use-websocket";
 import {useDispatch, useSelector} from "react-redux";
 import {fetchWebsocket} from "../state/slices/websocketSlice";
 import {useParams} from "react-router-dom";
@@ -8,57 +8,44 @@ import {Button} from "@mui/material";
 import {Navbar} from "../components/Navbar";
 
 function Simulation() {
-    const [delay, setDelay] = useState(6); // Opóźnienie w sekundach
-    const [unit, setUnit] = useState("s"); // Jednostka
-    const [earthMessages, setEarthMessages] = useState([]);
-    const [marsMessages, setMarsMessages] = useState([]);
+    const [delay, setDelay] = useState(6); // Delay in seconds
+    const [unit, setUnit] = useState("s"); // Unit
     const [input, setInput] = useState("");
-    const [responses, setResponses] = useState([]); // Potencjalne odpowiedzi
-    const [selectedResponses, setSelectedResponses] = useState(''); // Wybrane odpowiedzi
-    const [signature, setSignature] = useState(""); // Podpis użytkownika
-    const [messagesToAnimate, setMessagesToAnimate] = useState([]);
+    const [messages, setMessages] = useState([]); // Combined chat messages
+    const [responses, setResponses] = useState([]); // Potential responses
+    const [selectedResponse, setSelectedResponse] = useState(""); // Selected response
+    const [signature, setSignature] = useState(""); // User signature
 
     const dispatch = useDispatch();
     const params = useParams();
     const user = params.user;
-    const websocketUrl = useSelector(state => state.websocket.websocketUrl);
+    const websocketUrl = useSelector((state) => state.websocket.websocketUrl);
 
     useEffect(() => {
         dispatch(fetchWebsocket({userId: user}));
     }, []);
 
-    const [progress, setProgress] = useState(0);
-
-
-    const {sendJsonMessage, lastJsonMessage, readyState} = useWebSocket(
-        websocketUrl,
-        {
-            share: false,
-            shouldReconnect: (closeEvent) => true,
-        },
-    );
+    const {sendJsonMessage, lastJsonMessage} = useWebSocket(websocketUrl, {
+        share: false,
+        shouldReconnect: () => true,
+    });
 
     useEffect(() => {
-        console.log("Connection state changed")
-        if (readyState === ReadyState.OPEN) {
-            sendJsonMessage({
-                event: "subscribe",
-                data: {
-                    channel: "general-chatroom",
-                },
-            })
+        if (lastJsonMessage) {
+            if (lastJsonMessage.is_predicted) {
+                setResponses((prev) => [...prev, lastJsonMessage.message]);
+            } else {
+                setResponses([]);
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        text: lastJsonMessage.message,
+                        isFromMars: user === "EARTH",
+                    },
+                ]);
+            }
         }
-    }, [readyState])
-
-    // Run when a new WebSocket message is received (lastJsonMessage)
-    useEffect(() => {
-        if (lastJsonMessage !== undefined && lastJsonMessage !== null) {
-            user === 'EARTH' ? setMarsMessages((prev) => [...prev, JSON.parse(lastJsonMessage)?.text])
-                :
-                setEarthMessages((prev) => [...prev, JSON.parse(lastJsonMessage)?.text]);
-        }
-    }, [lastJsonMessage])
-
+    }, [lastJsonMessage]);
 
     const calculateDelayInMilliseconds = () => {
         switch (unit) {
@@ -69,232 +56,154 @@ function Simulation() {
             case "d":
                 return delay * 24 * 60 * 60 * 1000;
             default:
-                return delay * 1000; // Default to seconds
+                return delay * 1000;
         }
     };
 
-    const sendMessage = () => {
+    const sendMessage = async () => {
         if (input.trim()) {
-            const message = {text: input, isPredicted: false};
-            //   setEarthMessages((prev) => [...prev, message]);
-            sendJsonMessage(message);
-            // Proponowane odpowiedzi (dodawane od razu)
-            const newResponses = [
-                `Odpowiedź na "${message.text}" - opcja 1`,
-                `Odpowiedź na "${message.text}" - opcja 2`,
-                `Odpowiedź na "${message.text}" - opcja 3`,
-            ];
-            setResponses(newResponses);
-
-            // Dodaj wiadomość do animacji
             const delayInMilliseconds = calculateDelayInMilliseconds();
-            setMessagesToAnimate(prev => [...prev, {text: message.text, key: message.key, delay: delayInMilliseconds}]);
+            const newMessage = {text: input, isFromMars: user === "MARS"};
 
-            // Dodaj wiadomość na Marsa po opóźnieniu
+            //setMessages((prev) => [...prev, newMessage]);
+
+            await sendJsonMessage({
+                message: input,
+                is_predicted: false,
+            });
+
+            // Simulate delayed message delivery
             setTimeout(() => {
-                user === 'MARS' ? setEarthMessages((prev) => [...prev, message]) : setMarsMessages((prev) => [...prev, message]);
+                setMessages((prev) => [
+                    ...prev,
+                    {text: input, isFromMars: user === "MARS"},
+                ]);
             }, delayInMilliseconds);
 
-            setInput(""); // Wyczyść pole tekstowe
+            setInput("");
         }
     };
 
-    const handleSelectResponse = (response) => {
-        setSelectedResponses(response)
-    }
-
-
-    const handleClose = () => {
-        setResponses([]);
-    };
-
-    const handleAnimationEnd = (key) => {
-        setMessagesToAnimate(prev => prev.filter(msg => msg.key !== key));
-    };
-
-
-    const handleSave = () => {
-        if (selectedResponses.length > 0 && signature.trim()) {
-            const message = {text: input, isPredicted: true};
-            sendJsonMessage(message);
-            const delayInMilliseconds = calculateDelayInMilliseconds();
-            setMessagesToAnimate(prev => [...prev, {text: message.text, key: message.key, delay: delayInMilliseconds}]);
-            // Tutaj możesz wysłać dane do backendu
-            //   sendOptionalMessage(index, `${selectedResponse} - ${signature}`);
-
-            setSelectedResponses(''); // Wyczyść wybór
-            setSignature(""); // Wyczyść podpis
-
-        } else if (!selectedResponses.length) {
-            alert("No answer selected! Please select one first!");
+    const handleSave = async () => {
+        if (selectedResponse.trim() && signature.trim()) {
+            await sendJsonMessage({
+                message: `${selectedResponse} - ${signature}`,
+                is_predicted: true,
+            });
+            setSelectedResponse("");
+            setSignature("");
         } else {
-            alert("No text provided! Please provide one first!");
+            alert("Please select a response and provide a signature!");
         }
     };
 
     return (
-        <body class="bg-gray-700">
+        <body className="bg-gray-700">
         <Navbar/>
-        <div class="flex min-h-screen w-full">
-            <div class="w-64 bg-gray-800 text-white flex flex-col mt-16">
-                <div class="p-5 text-xl font-medium border-b border-gray-600">Latency</div>
-                {/* Kontrolka opóźnienia */}
-                <div className="bg-gray-800 p-6 rounded-lg shadow-lg flex flex-col items-center mb-6">
-
-                    <div className="flex items-center space-x-1">
-                        <span className="text-gray-300 font-medium text-lg">{delay}</span>
-                        <span className="text-gray-400 text-sm">{unit}</span>
+        <div className="flex flex-col items-center w-full min-h-screen mt-16">
+            {/* Chat Section */}
+            <div className="bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-4xl flex flex-col h-96 overflow-hidden">
+                <div className="flex-grow overflow-y-auto p-4 space-y-3">
+                    {messages.map((msg, index) => (
+                        <div
+                            key={index}
+                            className={`max-w-xs p-3 rounded-lg text-white ${
+                                msg.isFromMars
+                                    ? "bg-blue-500 self-end"
+                                    : "bg-gray-500 self-start"
+                            }`}
+                        >
+                            {msg.text}
+                        </div>
+                    ))}
+                </div>
+                {/* Input Section */}
+                <div className="flex items-center border-t border-gray-600 pt-4">
+                    <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder="Enter your message..."
+                        onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                        className="flex-grow p-2 bg-gray-700 text-white rounded-l-lg focus:outline-none"
+                    />
+                    <button
+                        onClick={sendMessage}
+                        className="bg-blue-500 px-4 py-2 text-white rounded-r-lg hover:bg-blue-600"
+                    >
+                        Send
+                    </button>
+                </div>
+            </div>
+            {responses.length > 0 && (
+                <div className="bg-gray-800 p-6 rounded-lg shadow-lg mt-8 w-full max-w-4xl">
+                    <h3 className="text-lg font-semibold text-white mb-4">
+                        Example Responses
+                    </h3>
+                    <div className="space-y-2">
+                        {responses.map((response, index) => (
+                            <div
+                                key={index}
+                                className={`p-2 cursor-pointer rounded-lg ${
+                                    selectedResponse === response
+                                        ? "bg-gray-600 text-white"
+                                        : "bg-gray-700 text-gray-300"
+                                }`}
+                                onClick={() => setSelectedResponse(response)}
+                            >
+                                {response}
+                            </div>
+                        ))}
                     </div>
+                    <input
+                        type="text"
+                        value={signature}
+                        onChange={(e) => setSignature(e.target.value)}
+                        placeholder="Enter your signature"
+                        className="mt-4 p-2 bg-gray-700 text-white w-full rounded-lg"
+                    />
+                    <Button
+                        onClick={handleSave}
+                        className="mt-2 bg-blue-500 text-white w-full hover:bg-blue-700"
+                        sx={{
+                            mt: 4,
+                            backgroundColor: '#3b82f6',
+                            color: '#ffffff'
+                        }}
+                    >
+                        Send Predicted
+                    </Button>
+                </div>
+            )}
+            {/* Latency Control */}
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg mt-8 w-full max-w-sm text-center">
+                <h3 className="text-lg font-semibold text-white">Latency Control</h3>
+                <div className="flex items-center justify-center mt-4">
                     <input
                         type="range"
                         min="1"
                         max="60"
                         value={delay}
                         onChange={(e) => setDelay(parseInt(e.target.value, 10))}
-                        className="w-full h-2 bg-gray-700 rounded-full appearance-none cursor-pointer accent-blue-500"
+                        className="w-full h-2 bg-gray-700 rounded-lg cursor-pointer"
                     />
-                    <select
-                        value={unit}
-                        onChange={(e) => setUnit(e.target.value)}
-                        className="mt-4 bg-gray-700 text-gray-300 p-2 rounded-lg focus:outline-none"
-                    >
-                        <option value="s">Sekundy</option>
-                        <option value="m">Minuty</option>
-                        <option value="h">Godziny</option>
-                        <option value="d">Dni</option>
-                    </select>
+                    <span className="ml-3 text-gray-300">{delay} {unit}</span>
                 </div>
+                <select
+                    value={unit}
+                    onChange={(e) => setUnit(e.target.value)}
+                    className="mt-4 bg-gray-700 text-white p-2 rounded-lg w-full"
+                >
+                    <option value="s">Seconds</option>
+                    <option value="m">Minutes</option>
+                    <option value="h">Hours</option>
+                    <option value="d">Days</option>
+                </select>
             </div>
 
-            {/* Propozycje odpowiedzi */}
-            {/* Obszar symulacji */}
-            <div className='flex justify-center items-center w-full mt-32'>
-                <div className='w-full max-w-2xl flex flex-col items-center'>
-                    {/* Okno Ziemi */}
-                    <div
-                        className=" flex w-180 bg-gray-800 justify-between space-x-6 rounded-lg shadow-lg w-full">
-                        <div className="min-w-80 bg-gray-800 p-4  rounded-lg w-full">
-                            <h2 className="text-xl text-center w-full font-semibold items-center mb-4">Earth</h2>
-                            {earthMessages.map((msg) => (
-                                <div key={msg.key} className="bg-gray-700 p-2 rounded-lg mb-2">
-                                    {msg.text}
-                                </div>
-                            ))}
-                        </div>
-                        {/* Animacja wiadomości */}
-                        {/* Okno Marsa */}
-                        <div className=" pb-8 min-w-80 bg-gray-800 p-4 rounded-lg shadow-lg w-full">
-                            <h2 className="text-xl text-center font-semibold mb-4 w-full">Mars</h2>
-                            {marsMessages.map((msg) => (
-                                <div key={msg.key} className="bg-gray-700 p-2 border-2 border-orange-600 rounded-lg mb-2">
-                                    {msg.text}
-                                </div>
-                                // <div key={msg.key} className="bg-gray-700 p-2 rounded-lg mb-2">
-                                //     {msg.text}
-                                // </div>
-                            ))}
-                        </div>
-                    </div>
-                    {/* Pole tekstowe i przycisk */}
-                    {responses.length > 0 && (
-                        <div className="mt-10 bg-gray-800 p-4 rounded-lg shadow-lg mb-6 w-full max-w-2xl">
-                            <h3 className="text-lg font-semibold mb-4">Example answers:</h3>
-                            {responses.map((response, index) => (
-                                <div
-                                    key={index}
-                                    onClick={() => handleSelectResponse(response)}
-                                    className={`p-2 mb-2 cursor-pointer rounded-lg ${selectedResponses.includes(response)
-                                        ? "bg-gray-500 text-white"
-                                        : "bg-gray-700 text-gray-300"
-                                    }`}
-                                >
-                                    {response}
-                                </div>
-                            ))}
-                            <div className="mt-4">
-                                <input
-                                    type="text"
-                                    value={signature}
-                                    onChange={(e) => setSignature(e.target.value)}
-                                    onKeyDown={(e) => e.key === "Enter" && handleSave()}
-                                    placeholder="Write your own answer"
-                                    className="w-full p-2 bg-gray-700 text-gray-300 rounded-lg"
-                                />
-                            </div>
-                            <div className="mt-4 flex w-full justify-between">
-                                <Button
-                                    onClick={handleSave}
-                                    sx={{
-                                        mr: '4px',
-                                        backgroundColor: '#707484',
-                                        border: 1,
-                                        borderColor: '#3f3f46',
-                                        fontWeight: 'bold',
-                                        width: '45%',
-                                    }}
-                                    color='inherit'
-                                >
-                                    SEND PREDICTED
-                                </Button>
-                                <Button
-                                    onClick={handleClose}
-                                    sx={{
-                                        mr: '4px',
-                                        backgroundColor: '#707484',
-                                        border: 1,
-                                        borderColor: '#3f3f46',
-                                        fontWeight: 'bold',
-                                        width: '45%',
-                                    }}
-                                    color='inherit'
-                                >
-                                    Close
-                                </Button>
-                            </div>
-                            {/*<div className="w-full max-w-md mx-auto mt-10">*/}
-                            {/*    <div className="relative w-full bg-gray-300 rounded-full h-6">*/}
-                            {/*        <div*/}
-                            {/*            className="absolute top-0 left-0 h-full bg-blue-500 rounded-full transition-all"*/}
-                            {/*            style={{width: `${progress}%`}}*/}
-                            {/*        ></div>*/}
-                            {/*    </div>*/}
-                            {/*    <p className="text-center mt-2 text-white">{progress}%</p>*/}
-                            {/*</div>*/}
-                        </div>
-                    )}
+            {/* Responses Section */}
 
-                    <div className="w-full max-w-md flex items-center m-10 justify-center">
-                        <input
-                            type="text"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            placeholder="Enter your message here..."
-                            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                            className="w-full p-2 bg-gray-800 text-gray-300 rounded-l-lg border-r-0 border-gray-700"
-                        />
-                        <button
-                            onClick={sendMessage}
-                            className="bg-gray-500 font-bold text-white px-4 py-2 rounded-r-lg hover:bg-blue-600"
-                        >
-                            SEND
-                        </button>
-                    </div>
-                    <div className="space relative flex w-full items-center justify-center">
-                        {messagesToAnimate.map((msg) => (
-                            <div
-                                key={msg.key}
-                                className="flying-message absolute bg-gray-700 text-white p-2 rounded-full"
-                                style={{animation: `flyToMars ${msg.delay / 1000}s linear`}}
-                                onAnimationEnd={() => handleAnimationEnd(msg.key)}
-                            >
-                                {msg.text}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
         </div>
-
         </body>
     );
 }

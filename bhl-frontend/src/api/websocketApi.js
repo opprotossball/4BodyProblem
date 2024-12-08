@@ -8,7 +8,7 @@ export const websocketApi = {
         } else {
             websocketClient = backendApi('http://localhost:8001/api/v1');
         }
-        websocketClient.post('interplanetary-connect');
+        websocketClient.post('/interplanetary-connect');
         return websocketClient.post('/local-ws', null, {
             params:
                 {
