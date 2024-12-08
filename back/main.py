@@ -1,11 +1,20 @@
 from fastapi import FastAPI
-from routers import auth, websockets, astronomy
+from routers import auth, inter_ws, local_ws, astronomy
 from fastapi.routing import APIRouter
 from llm import test
 from fastapi.middleware.cors import CORSMiddleware
 import time 
 import asyncio 
 
+# Define the lifespan event handler
+# async def lifespan(app: FastAPI):
+#     print("Application is starting...")
+#     await asyncio.sleep(5)  # Simulate delay
+#     await websockets.interplanetary_connect()
+#     yield  # Yield control back to FastAPI for the application runtime
+#     print("Application is shutting down...")
+
+#app = FastAPI(lifespan=lifespan)
 app = FastAPI()
 
 app.add_middleware(
@@ -16,13 +25,9 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all HTTP headers
 )
 
-@app.on_event("startup")
-async def interplanetary():
-    await asyncio.sleep(5)
-    await websockets.interplanetary_connect()
-
 router = APIRouter(prefix="/api/v1")
 router.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(astronomy.router, prefix="/astronomy", tags=["astronomy"])
-router.include_router(websockets.router, tags=["websocket"])
+router.include_router(inter_ws.router, tags=["inter_ws"])
+router.include_router(local_ws.router, tags=["local_ws"])
 app.include_router(router)
