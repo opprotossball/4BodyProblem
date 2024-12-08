@@ -29,7 +29,7 @@ function Simulation() {
         websocketUrl,
         {
             share: false,
-            shouldReconnect: () => true,
+            shouldReconnect: (closeEvent) => true,
         },
     );
 
@@ -68,7 +68,8 @@ function Simulation() {
         if (input.trim()) {
             const message = {text: input, key: Date.now()};
             //   setEarthMessages((prev) => [...prev, message]);
-
+            console.log('sending message');
+            sendJsonMessage(message);
             // Proponowane odpowiedzi (dodawane od razu)
             const newResponses = [
                 `Odpowiedź na "${message.text}" - opcja 1`,
