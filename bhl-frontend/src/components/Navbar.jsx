@@ -1,5 +1,4 @@
-import {AppBar, Button, FormControl, InputLabel, MenuItem, Select, Toolbar} from "@mui/material";
-import {NavLink} from "react-router";
+import {AppBar, Toolbar} from "@mui/material";
 import {useDispatch, useSelector} from "react-redux";
 import {useEffect, useState} from "react";
 import {fetchLightTime} from "../state/slices/lightTimeSlice";
