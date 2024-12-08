@@ -27,6 +27,9 @@ app.add_middleware(
 
 router = APIRouter(prefix="/api/v1")
 router.include_router(auth.router, prefix="/auth", tags=["auth"])
+
 app.include_router(astronomy.router, prefix="/astronomy", tags=["astronomy"])
+
 router.include_router(ws.router, tags=["ws"])
+
 app.include_router(router)
