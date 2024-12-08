@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import auth, inter_ws, local_ws, astronomy
+from routers import auth, ws, astronomy
 from fastapi.routing import APIRouter
 from llm import test
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,7 +29,7 @@ router = APIRouter(prefix="/api/v1")
 router.include_router(auth.router, prefix="/auth", tags=["auth"])
 
 app.include_router(astronomy.router, prefix="/astronomy", tags=["astronomy"])
-router.include_router(inter_ws.router, tags=["inter_ws"])
-router.include_router(local_ws.router, tags=["local_ws"])
+
+router.include_router(ws.router, tags=["ws"])
 
 app.include_router(router)
