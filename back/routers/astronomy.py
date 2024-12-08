@@ -3,6 +3,7 @@ from schemas import InitiateWebSocketResponse
 from fastapi import APIRouter, HTTPException, Depends
 from schemas import LightTimeResponse
 from skyfield.api import load
+from llm import test
 
 # Load the JPL ephemeris DE421 (covers 1900-2050).
 planets = load('de421.bsp')
@@ -20,4 +21,9 @@ async def get_light_time():
     # position of Mars, viewed from Earth?
     astrometric = earth.at(t).observe(mars)
     ra, dec, distance = astrometric.radec()
+
     return LightTimeResponse(light_minutes=float(distance.light_seconds() / 60))
+
+@router.post("/gemini")
+async def gemini():
+    test()
