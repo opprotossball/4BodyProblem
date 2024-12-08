@@ -1,10 +1,15 @@
 import {backendApi} from "./backendApi";
 
-const websocketClient = backendApi('/local-ws');
-
 export const websocketApi = {
     get: (userId) => {
-        return websocketClient.post('', null, {
+        let websocketClient;
+        if (userId === 'MARS') {
+            websocketClient = backendApi('http://localhost:8000/api/v1');
+        } else {
+            websocketClient = backendApi('http://localhost:8001/api/v1');
+        }
+        websocketClient.post('interplanetary-connect');
+        return websocketClient.post('/local-ws', null, {
             params:
                 {
                     user_id: userId

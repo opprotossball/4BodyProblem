@@ -1,24 +1,7 @@
 import {AppBar, Toolbar} from "@mui/material";
-import {useDispatch, useSelector} from "react-redux";
-import {useEffect, useState} from "react";
-import {fetchLightTime} from "../state/slices/lightTimeSlice";
 import {NavbarButton} from "./navbar/NavbarButton";
 
 export const Navbar = () => {
-    const error = useSelector(state => state.lightTime.error);
-    const loading = useSelector(state => state.lightTime.loading);
-    const lightTime = useSelector(state => state.lightTime.lightTime);
-
-    const [selectedValue, setSelectedValue] = useState('Selected value');
-
-    const dispatch = useDispatch();
-
-    useEffect(() => {
-        setSelectedValue('MARS');
-        dispatch(fetchLightTime());
-    }, []);
-
-    console.log(lightTime)
 
     return (
         <div className="absolute">

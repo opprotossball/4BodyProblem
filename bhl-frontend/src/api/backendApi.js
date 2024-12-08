@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const backendApi = (url) => {
     const client = axios.create({
-        baseURL: 'http://localhost:8000/api/v1' + url,
+        baseURL: url,
         headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json'

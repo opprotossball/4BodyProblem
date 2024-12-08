@@ -4,6 +4,7 @@ import useWebSocket, {ReadyState} from "react-use-websocket";
 import {websocketApi} from "../api/websocketApi";
 import {useDispatch, useSelector} from "react-redux";
 import {fetchWebsocket} from "../state/slices/websocketSlice";
+import {useParams} from "react-router-dom";
 
 function Simulation() {
     const [delay, setDelay] = useState(6); // Opóźnienie w sekundach
@@ -16,12 +17,14 @@ function Simulation() {
     const [signature, setSignature] = useState(""); // Podpis użytkownika
     const [messagesToAnimate, setMessagesToAnimate] = useState([]);
 
+    const params = useParams();
+
     const websocketUrl = useSelector(state => state.websocket.websocketUrl);
 
     const dispatch = useDispatch();
 
     useEffect(() => {
-        dispatch(fetchWebsocket({userId: '123'}));
+        dispatch(fetchWebsocket({userId: params.user}));
     }, []);
 
 

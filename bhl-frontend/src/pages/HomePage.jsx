@@ -1,11 +1,23 @@
 import {Navbar} from "../components/Navbar";
 import {Button, FormControl, InputLabel, MenuItem, Select} from "@mui/material";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {NavLink} from "react-router";
+import {useDispatch, useSelector} from "react-redux";
+import {fetchLightTime} from "../state/slices/lightTimeSlice";
 
 export const HomePage = () => {
 
+    const error = useSelector(state => state.lightTime.error);
+    const loading = useSelector(state => state.lightTime.loading);
+    const lightTime = useSelector(state => state.lightTime.lightTime);
+
     const [selectedValue, setSelectedValue] = useState('EARTH');
+
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        dispatch(fetchLightTime());
+    }, []);
 
     const handleChange = (event) => {
         setSelectedValue(event.target.value);
@@ -28,7 +40,7 @@ export const HomePage = () => {
                         '&:hover': {
                             backgroundColor: '#374151',
                         },
-                    }} component={NavLink} to='/simulation'>Chat!</Button>
+                    }} component={NavLink} to={`/simulation/${selectedValue}`}>Chat!</Button>
                 </div>
                 <FormControl fullWidth style={{marginTop: '16px',
                 justifyContent: 'center'}}>
@@ -49,6 +61,9 @@ export const HomePage = () => {
                         <MenuItem sx={{fontWeight: 'bold'}} value="MARS">MARS</MenuItem>
                     </Select>
                 </FormControl>
+                <div className='font-semibold text-xl mt-4'>
+                    Current distance between Earth and Mars: {lightTime?.toFixed(2)} light minutes.
+                </div>
             </div>
         </div>
     );
