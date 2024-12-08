@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 from time import sleep
 import websockets
+import json
 
 load_dotenv()
 planet = os.getenv("PLANET")
@@ -25,17 +26,20 @@ async def interplanetary_websocket(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
-            print(f"interplanetary received: {data}")
+            print(f"interplanetary received: {data}!!")
             #await websocket.send_text(f"Received message: {data}")
     except WebSocketDisconnect:
         print(f"WebSocket disconnected")
 
-def interplanetary_forward(message):
-    interplanetary_ws.send_text(message)
+async def send(message):
+    await interplanetary_ws.send(json.dumps(message))
 
 @router.post("/interplanetary-connect")
 async def interplanetary_connect():
     global interplanetary_ws
+    if interplanetary_ws is not None:
+        print("Interplanetary-connect: already connected")
+        return
     try:
         # Connect to the other backend
         print(f"Connecting to ws://{interplanetary_ip}/api/v1/inter-ws")
