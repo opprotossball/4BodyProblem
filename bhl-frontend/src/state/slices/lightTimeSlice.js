@@ -6,8 +6,7 @@ const SLICE_NAME = 'lightTime';
 export const fetchLightTime = createAsyncThunk(
     'lightTime/fetchLightTime',
     async () => {
-        const response = await lightTimeApi.getLightTime();
-        return response;
+        return await lightTimeApi.getLightTime();
     }
 );
 

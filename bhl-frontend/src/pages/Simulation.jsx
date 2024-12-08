@@ -1,5 +1,9 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import "../style.css";
+import useWebSocket, {ReadyState} from "react-use-websocket";
+import {websocketApi} from "../api/websocketApi";
+import {useDispatch, useSelector} from "react-redux";
+import {fetchWebsocket} from "../state/slices/websocketSlice";
 
 function Simulation() {
     const [delay, setDelay] = useState(6); // Opóźnienie w sekundach
@@ -11,6 +15,40 @@ function Simulation() {
     const [selectedResponses, setSelectedResponses] = useState([]); // Wybrane odpowiedzi
     const [signature, setSignature] = useState(""); // Podpis użytkownika
     const [messagesToAnimate, setMessagesToAnimate] = useState([]);
+
+    const websocketUrl = useSelector(state => state.websocket.websocketUrl);
+
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        dispatch(fetchWebsocket({userId: '123'}));
+    }, []);
+
+
+    const {sendJsonMessage, lastJsonMessage, readyState} = useWebSocket(
+        websocketUrl,
+        {
+            share: false,
+            shouldReconnect: () => true,
+        },
+    );
+
+    useEffect(() => {
+        console.log("Connection state changed")
+        if (readyState === ReadyState.OPEN) {
+            sendJsonMessage({
+                event: "subscribe",
+                data: {
+                    channel: "general-chatroom",
+                },
+            })
+        }
+    }, [readyState])
+
+    // Run when a new WebSocket message is received (lastJsonMessage)
+    useEffect(() => {
+        console.log(`Got a new message: ${lastJsonMessage}`)
+    }, [lastJsonMessage])
 
 
     const calculateDelayInMilliseconds = () => {
@@ -28,7 +66,7 @@ function Simulation() {
 
     const sendMessage = () => {
         if (input.trim()) {
-            const message = { text: input, key: Date.now() };
+            const message = {text: input, key: Date.now()};
             //   setEarthMessages((prev) => [...prev, message]);
 
             // Proponowane odpowiedzi (dodawane od razu)
@@ -41,7 +79,7 @@ function Simulation() {
 
             // Dodaj wiadomość do animacji
             const delayInMilliseconds = calculateDelayInMilliseconds();
-            setMessagesToAnimate(prev => [...prev, { text: message.text, key: message.key, delay: delayInMilliseconds }]);
+            setMessagesToAnimate(prev => [...prev, {text: message.text, key: message.key, delay: delayInMilliseconds}]);
 
             // Dodaj wiadomość na Marsa po opóźnieniu
             setTimeout(() => {
@@ -57,8 +95,7 @@ function Simulation() {
             setSelectedResponses((prev) =>
                 prev.filter((r) => r !== response)
             )
-        }
-        else {
+        } else {
             setSelectedResponses((prev) => [...prev, response]);
         }
     }
@@ -78,9 +115,9 @@ function Simulation() {
             const selectedResponse = selectedResponses[0]; // Zakładamy, że wysyłamy tylko jedną odpowiedź
             const index = responses.indexOf(selectedResponse);
 
-            const message = { text: input, key: Date.now() };
+            const message = {text: input, key: Date.now()};
             const delayInMilliseconds = calculateDelayInMilliseconds();
-            setMessagesToAnimate(prev => [...prev, { text: message.text, key: message.key, delay: delayInMilliseconds }]);
+            setMessagesToAnimate(prev => [...prev, {text: message.text, key: message.key, delay: delayInMilliseconds}]);
             // Tutaj możesz wysłać dane do backendu
             //   sendOptionalMessage(index, `${selectedResponse} - ${signature}`);
 
@@ -136,9 +173,9 @@ function Simulation() {
                             key={index}
                             onClick={() => handleSelectResponse(response)}
                             className={`p-2 mb-2 cursor-pointer rounded-lg ${selectedResponses.includes(response)
-                                    ? "bg-blue-500 text-white"
-                                    : "bg-gray-700 text-gray-300"
-                                }`}
+                                ? "bg-blue-500 text-white"
+                                : "bg-gray-700 text-gray-300"
+                            }`}
                         >
                             {response}
                         </div>
@@ -223,13 +260,12 @@ function Simulation() {
             </div>
 
 
-
             <div className="space relative flex items-center justify-center">
                 {messagesToAnimate.map((msg) => (
                     <div
                         key={msg.key}
                         className="flying-message absolute bg-gray-700 text-white p-2 rounded-full"
-                        style={{ animation: `flyToMars ${msg.delay / 1000}s linear` }}
+                        style={{animation: `flyToMars ${msg.delay / 1000}s linear`}}
                         onAnimationEnd={() => handleAnimationEnd(msg.key)}
                     >
                         {msg.text}
