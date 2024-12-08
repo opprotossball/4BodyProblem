@@ -51,6 +51,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
         print(f"WebSocket disconnected for user {user_id}")
 
 async def send_to_all(message: str):
+    print("Sending to all!", flush=True)
     # Iterate over all WebSocket connections
     for user_id, websocket in frontend_ws_connections.items():
         try:
