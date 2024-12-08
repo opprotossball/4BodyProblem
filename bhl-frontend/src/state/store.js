@@ -6,4 +6,5 @@ export const store = configureStore({
     reducer: {
         lightTime: lightTimeReducer
     },
-})
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware(),
+});

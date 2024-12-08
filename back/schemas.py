@@ -20,4 +20,4 @@ class InitiateWebSocketResponse(BaseModel):
     websocket_url: str
 
 class LightTimeResponse(BaseModel):
-    light_minutes: int
+    light_minutes: float
