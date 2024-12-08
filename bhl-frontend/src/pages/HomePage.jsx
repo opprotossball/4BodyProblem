@@ -1,6 +1,7 @@
 import {Navbar} from "../components/Navbar";
 import {Button, FormControl, InputLabel, MenuItem, Select} from "@mui/material";
 import {useState} from "react";
+import {NavLink} from "react-router";
 
 export const HomePage = () => {
 
@@ -27,7 +28,7 @@ export const HomePage = () => {
                         '&:hover': {
                             backgroundColor: '#374151',
                         },
-                    }}>Chat!</Button>
+                    }} component={NavLink} to='/simulation'>Chat!</Button>
                 </div>
                 <FormControl fullWidth style={{marginTop: '16px',
                 justifyContent: 'center'}}>
