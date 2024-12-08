@@ -1,5 +1,6 @@
 import {Navbar} from "../components/Navbar";
 import {Button} from "@mui/material";
+import {NavLink} from "react-router";
 
 export const HomePage = () => {
 
@@ -20,7 +21,7 @@ export const HomePage = () => {
                         '&:hover': {
                             backgroundColor: '#374151',
                         },
-                    }}>Chat!</Button>
+                    }} component={NavLink} to='/simulation'>Chat!</Button>
                 </div>
             </div>
         </div>
