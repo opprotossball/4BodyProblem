@@ -17,6 +17,7 @@ function Simulation() {
     const [selectedResponses, setSelectedResponses] = useState(''); // Wybrane odpowiedzi
     const [signature, setSignature] = useState(""); // Podpis użytkownika
     const [messagesToAnimate, setMessagesToAnimate] = useState([]);
+    const [progress, setProgress] = useState(0);
 
     const dispatch = useDispatch();
     const params = useParams();
@@ -27,7 +28,6 @@ function Simulation() {
         dispatch(fetchWebsocket({userId: user}));
     }, []);
 
-    const [progress, setProgress] = useState(0);
 
 
     const {sendJsonMessage, lastJsonMessage, readyState} = useWebSocket(
@@ -38,24 +38,11 @@ function Simulation() {
         },
     );
 
-    useEffect(() => {
-        console.log("Connection state changed")
-        if (readyState === ReadyState.OPEN) {
-            sendJsonMessage({
-                event: "subscribe",
-                data: {
-                    channel: "general-chatroom",
-                },
-            })
-        }
-    }, [readyState])
-
     // Run when a new WebSocket message is received (lastJsonMessage)
     useEffect(() => {
-        if (lastJsonMessage !== undefined && lastJsonMessage !== null) {
-            user === 'EARTH' ? setMarsMessages((prev) => [...prev, JSON.parse(lastJsonMessage)?.text])
-                :
-                setEarthMessages((prev) => [...prev, JSON.parse(lastJsonMessage)?.text]);
+        console.log(lastJsonMessage)
+        if (lastJsonMessage !== undefined && lastJsonMessage !== null && lastJsonMessage.is_predicted) {
+            setResponses((prev) => [...prev, lastJsonMessage.message]);
         }
     }, [lastJsonMessage])
 
@@ -73,25 +60,19 @@ function Simulation() {
         }
     };
 
-    const sendMessage = () => {
+    const sendMessage = async () => {
         if (input.trim()) {
-            const message = {text: input, isPredicted: false};
+            const message = {message: input, is_predicted: false, key: Date.now()};
             //   setEarthMessages((prev) => [...prev, message]);
-            sendJsonMessage(message);
-            // Proponowane odpowiedzi (dodawane od razu)
-            const newResponses = [
-                `Odpowiedź na "${message.text}" - opcja 1`,
-                `Odpowiedź na "${message.text}" - opcja 2`,
-                `Odpowiedź na "${message.text}" - opcja 3`,
-            ];
-            setResponses(newResponses);
-
+            await sendJsonMessage(message);
+            console.log(message);
             // Dodaj wiadomość do animacji
             const delayInMilliseconds = calculateDelayInMilliseconds();
-            setMessagesToAnimate(prev => [...prev, {text: message.text, key: message.key, delay: delayInMilliseconds}]);
+            setMessagesToAnimate(prev => [...prev, {text: message.message, key: message.key, delay: delayInMilliseconds}]);
 
             // Dodaj wiadomość na Marsa po opóźnieniu
             setTimeout(() => {
+                console.log(message.message)
                 user === 'MARS' ? setEarthMessages((prev) => [...prev, message]) : setMarsMessages((prev) => [...prev, message]);
             }, delayInMilliseconds);
 
@@ -115,7 +96,7 @@ function Simulation() {
 
     const handleSave = () => {
         if (selectedResponses.length > 0 && signature.trim()) {
-            const message = {text: input, isPredicted: true};
+            const message = {message: input, is_predicted: true};
             sendJsonMessage(message);
             const delayInMilliseconds = calculateDelayInMilliseconds();
             setMessagesToAnimate(prev => [...prev, {text: message.text, key: message.key, delay: delayInMilliseconds}]);
@@ -177,7 +158,7 @@ function Simulation() {
                             <h2 className="text-xl text-center w-full font-semibold items-center mb-4">Earth</h2>
                             {earthMessages.map((msg) => (
                                 <div key={msg.key} className="bg-gray-700 p-2 rounded-lg mb-2">
-                                    {msg.text}
+                                    {msg.message}
                                 </div>
                             ))}
                         </div>
@@ -187,7 +168,7 @@ function Simulation() {
                             <h2 className="text-xl text-center font-semibold mb-4 w-full">Mars</h2>
                             {marsMessages.map((msg) => (
                                 <div key={msg.key} className="bg-gray-700 p-2 border-2 border-orange-600 rounded-lg mb-2">
-                                    {msg.text}
+                                    {msg.message}
                                 </div>
                                 // <div key={msg.key} className="bg-gray-700 p-2 rounded-lg mb-2">
                                 //     {msg.text}
